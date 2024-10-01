@@ -1,6 +1,7 @@
 # photoprism
-Photoprism - docker-compose
 
-Ver en "localhost:8200"
+Ver en "localhost:2342"
+
 Usuario: admin
+
 Password: p4ssw0rd
