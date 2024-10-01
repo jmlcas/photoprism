@@ -6,11 +6,15 @@ services:
       - seccomp:unconfined
       - apparmor:unconfined
     ports:
-      - "8200:2342" 
-    restart: unless-stopped      
+      - "2342:2342" 
+    restart: unless-stopped
+    depends_on:
+      - mariadb    
     environment:
-      PHOTOPRISM_ADMIN_PASSWORD: "p4ssw0rd"     
-      PHOTOPRISM_HTTP_PORT: 2342              
+      PHOTOPRISM_ADMIN_USER: "admin"
+      PHOTOPRISM_ADMIN_PASSWORD: "p4ssw0rd"
+      PHOTOPRISM_AUTH_MODE: "password"
+      PHOTOPRISM_SITE_URL: "http://localhost:2342/"  # "http(s)://domain.name(:port)/"2              
       PHOTOPRISM_HTTP_COMPRESSION: "gzip"          
       PHOTOPRISM_DEBUG: "false"              
       PHOTOPRISM_PUBLIC: "false"            
@@ -19,36 +23,56 @@ services:
       PHOTOPRISM_DISABLE_WEBDAV: "false"
       PHOTOPRISM_DISABLE_SETTINGS: "false"
       PHOTOPRISM_DISABLE_TENSORFLOW: "false"
+      PHOTOPRISM_DISABLE_FACES: "false"              
+      PHOTOPRISM_DISABLE_CLASSIFICATION: "false"     
+      PHOTOPRISM_DISABLE_VECTORS: "false"            
+      PHOTOPRISM_DISABLE_RAW: "false"        
+      PHOTOPRISM_DISABLE_TLS: "false"                
+      PHOTOPRISM_DEFAULT_TLS: "true
       PHOTOPRISM_DARKTABLE_PRESETS: "false"
       PHOTOPRISM_DETECT_NSFW: "false"
+      PHOTOPRISM_ORIGINALS_LIMIT: 5000
       PHOTOPRISM_UPLOAD_NSFW: "true"
-      # PHOTOPRISM_DATABASE_DRIVER: "sqlite"
       PHOTOPRISM_DATABASE_DRIVER: "mysql"
       PHOTOPRISM_DATABASE_SERVER: "mariadb:3306"
       PHOTOPRISM_DATABASE_NAME: "photoprism"
       PHOTOPRISM_DATABASE_USER: "photoprism" 
       PHOTOPRISM_DATABASE_PASSWORD: "p4ssw0rd"
-      PHOTOPRISM_SITE_URL: "http://localhost:8200/"
       PHOTOPRISM_SITE_TITLE: "PhotoPrism"
-      PHOTOPRISM_SITE_CAPTION: "Browse Your Life"
+      PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
       PHOTOPRISM_SITE_DESCRIPTION: ""
       PHOTOPRISM_SITE_AUTHOR: ""
-    user: "1000:1000"
+      PHOTOPRISM_LOG_LEVEL: "info" 
+      PHOTOPRISM_EXPERIMENTAL: "false"               
+      PHOTOPRISM_DISABLE_CHOWN: "false"
+      PHOTOPRISM_RAW_PRESETS: "false"               
+      PHOTOPRISM_SIDECAR_YAML: "true"                
+      PHOTOPRISM_BACKUP_ALBUMS: "true"               
+      PHOTOPRISM_BACKUP_DATABASE: "true"             
+      PHOTOPRISM_BACKUP_SCHEDULE: "daily"            
+      PHOTOPRISM_INDEX_SCHEDULE: ""                  
+      PHOTOPRISM_AUTO_INDEX: 300                     
+      PHOTOPRISM_AUTO_IMPORT: -1                     
+      PHOTOPRISM_DETECT_NSFW: "false"                
+      PHOTOPRISM_UPLOAD_NSFW: "true"        
     volumes:
       - "./storage:/photoprism/storage"
-
+      - "~/Pictures:/photoprism/originals"
+      
   mariadb:
     image: mariadb:latest
     restart: unless-stopped
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
-    command: mysqld --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=50
+    command: --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
     volumes:
       - "./database:/var/lib/mysql"
     environment:
-      MYSQL_ROOT_PASSWORD: p4ssw0rd
+      MARIADB_AUTO_UPGRADE: "1"
+      MARIADB_INITDB_SKIP_TZINFO: "1"    
+      MYSQL_ROOT_PASSWORD: "p4ssw0rd"
       MYSQL_DATABASE: photoprism
       MYSQL_USER: photoprism
-      MYSQL_PASSWORD: p4ssw0rd
+      MYSQL_PASSWORD: "p4ssw0rd"
 
