@@ -7,72 +7,67 @@ services:
       - apparmor:unconfined
     ports:
       - "2342:2342" 
-    restart: unless-stopped
-    depends_on:
-      - mariadb    
     environment:
-      PHOTOPRISM_ADMIN_USER: "admin"
-      PHOTOPRISM_ADMIN_PASSWORD: "p4ssw0rd"
-      PHOTOPRISM_AUTH_MODE: "password"
-      PHOTOPRISM_SITE_URL: "http://localhost:2342/"  # "http(s)://domain.name(:port)/"2              
-      PHOTOPRISM_HTTP_COMPRESSION: "gzip"          
-      PHOTOPRISM_DEBUG: "false"              
-      PHOTOPRISM_PUBLIC: "false"            
+      PHOTOPRISM_INIT: "http"
+      PHOTOPRISM_UID: ${UID:-1000}                         # user id, should match your host user id
+      PHOTOPRISM_GID: ${GID:-1000}                         # group id
+      PHOTOPRISM_ADMIN_USER: "admin"                       # admin login username
+      PHOTOPRISM_ADMIN_PASSWORD: "photoprism"              # initial admin password (8-72 characters)
+      PHOTOPRISM_AUTH_MODE: "password"                     # authentication mode (public, password)
+      PHOTOPRISM_SITE_URL: "http://localhost:2342/"        # server URL in the format "http(s)://domain.name(:port)/(path)"
+      PHOTOPRISM_SITE_CAPTION: "Latest"
+      PHOTOPRISM_SITE_DESCRIPTION: "Tags and finds pictures without getting in your way!"
+      PHOTOPRISM_SITE_AUTHOR: "@photoprism_app"
+      PHOTOPRISM_DEBUG: "true"
       PHOTOPRISM_READONLY: "false"
       PHOTOPRISM_EXPERIMENTAL: "false"
-      PHOTOPRISM_DISABLE_WEBDAV: "false"
-      PHOTOPRISM_DISABLE_SETTINGS: "false"
-      PHOTOPRISM_DISABLE_TENSORFLOW: "false"
-      PHOTOPRISM_DISABLE_FACES: "false"              
-      PHOTOPRISM_DISABLE_CLASSIFICATION: "false"     
-      PHOTOPRISM_DISABLE_VECTORS: "false"            
-      PHOTOPRISM_DISABLE_RAW: "false"        
-      PHOTOPRISM_DISABLE_TLS: "false"                
-      PHOTOPRISM_DEFAULT_TLS: "true
-      PHOTOPRISM_DARKTABLE_PRESETS: "false"
-      PHOTOPRISM_DETECT_NSFW: "false"
-      PHOTOPRISM_ORIGINALS_LIMIT: 5000
-      PHOTOPRISM_UPLOAD_NSFW: "true"
+      PHOTOPRISM_HTTP_MODE: "debug"
+      PHOTOPRISM_HTTP_HOST: "0.0.0.0"
+      PHOTOPRISM_HTTP_PORT: 2342
+      PHOTOPRISM_HTTP_COMPRESSION: "gzip"                  # improves transfer speed and bandwidth utilization (none or gzip)
       PHOTOPRISM_DATABASE_DRIVER: "mysql"
-      PHOTOPRISM_DATABASE_SERVER: "mariadb:3306"
+      PHOTOPRISM_DATABASE_SERVER: "mariadb:4001"
       PHOTOPRISM_DATABASE_NAME: "photoprism"
-      PHOTOPRISM_DATABASE_USER: "photoprism" 
-      PHOTOPRISM_DATABASE_PASSWORD: "p4ssw0rd"
-      PHOTOPRISM_SITE_TITLE: "PhotoPrism"
-      PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
-      PHOTOPRISM_SITE_DESCRIPTION: ""
-      PHOTOPRISM_SITE_AUTHOR: ""
-      PHOTOPRISM_LOG_LEVEL: "info" 
-      PHOTOPRISM_EXPERIMENTAL: "false"               
-      PHOTOPRISM_DISABLE_CHOWN: "false"
-      PHOTOPRISM_RAW_PRESETS: "false"               
-      PHOTOPRISM_SIDECAR_YAML: "true"                
-      PHOTOPRISM_BACKUP_ALBUMS: "true"               
-      PHOTOPRISM_BACKUP_DATABASE: "true"             
-      PHOTOPRISM_BACKUP_SCHEDULE: "daily"            
-      PHOTOPRISM_INDEX_SCHEDULE: ""                  
-      PHOTOPRISM_AUTO_INDEX: 300                     
-      PHOTOPRISM_AUTO_IMPORT: -1                     
-      PHOTOPRISM_DETECT_NSFW: "false"                
-      PHOTOPRISM_UPLOAD_NSFW: "true"        
+      PHOTOPRISM_DATABASE_USER: "root"
+      PHOTOPRISM_DATABASE_PASSWORD: "photoprism"
+      PHOTOPRISM_DISABLE_CHOWN: "false"       # disables updating storage permissions via chmod and chown on startup
+      PHOTOPRISM_DISABLE_BACKUPS: "false"     # disables backing up albums and photo metadata to YAML files
+      PHOTOPRISM_DISABLE_WEBDAV: "false"      # disables built-in WebDAV server
+      PHOTOPRISM_DISABLE_SETTINGS: "false"    # disables settings UI and API
+      PHOTOPRISM_DISABLE_PLACES: "false"      # disables reverse geocoding and maps
+      PHOTOPRISM_DISABLE_EXIFTOOL: "false"    # disables creating JSON metadata sidecar files with ExifTool
+      PHOTOPRISM_DISABLE_TENSORFLOW: "false"  # disables all features depending on TensorFlow
+      PHOTOPRISM_DETECT_NSFW: "false"         # automatically flags photos as private that MAY be offensive (requires TensorFlow)
+      PHOTOPRISM_UPLOAD_NSFW: "false"         # allows uploads that MAY be offensive (no effect without TensorFlow)
+      PHOTOPRISM_RAW_PRESETS: "false"         # enables applying user presets when converting RAW images (reduces performance)
+      PHOTOPRISM_THUMB_FILTER: "lanczos"      # resample filter, best to worst: blackman, lanczos, cubic, linear
+      PHOTOPRISM_THUMB_UNCACHED: "true"       # enables on-demand thumbnail rendering (high memory and cpu usage)
+      PHOTOPRISM_THUMB_SIZE: 1920             # pre-rendered thumbnail size limit (default 1920, min 720, max 7680)
+      PHOTOPRISM_THUMB_SIZE_UNCACHED: 7680    # on-demand rendering size limit (default 7680, min 720, max 7680)
+      PHOTOPRISM_JPEG_SIZE: 7680              # size limit for converted image files in pixels (720-30000)
+      TF_CPP_MIN_LOG_LEVEL: 0                 # show TensorFlow log messages for development
+    working_dir: "/photoprism"
     volumes:
       - "./storage:/photoprism/storage"
-      - "~/Pictures:/photoprism/originals"
+      - "./storage/originals:/photoprism/originals"
       
   mariadb:
     image: mariadb:latest
-    restart: unless-stopped
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
-    command: --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
+    command: --port=4001 --innodb-strict-mode=1 --innodb-buffer-pool-size=256M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
+    expose:
+      - "4001"
+    ports:
+      - "4003:4001" # database port (host:container)
     volumes:
-      - "./database:/var/lib/mysql"
+      - "./scripts/sql/mariadb-init.sql:/docker-entrypoint-initdb.d/init.sql"
     environment:
       MARIADB_AUTO_UPGRADE: "1"
-      MARIADB_INITDB_SKIP_TZINFO: "1"    
-      MYSQL_ROOT_PASSWORD: "p4ssw0rd"
-      MYSQL_DATABASE: photoprism
-      MYSQL_USER: photoprism
-      MYSQL_PASSWORD: "p4ssw0rd"
+      MARIADB_INITDB_SKIP_TZINFO: "1"
+      MARIADB_DATABASE: "photoprism"
+      MARIADB_USER: "photoprism"
+      MARIADB_PASSWORD: "photoprism"
+      MARIADB_ROOT_PASSWORD: "photoprism"
 
