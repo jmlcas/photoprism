@@ -6,10 +6,10 @@ services:
       - seccomp:unconfined
       - apparmor:unconfined
     ports:
-      - "2342:2342"
+      - "2344:2342"
     depends_on:
       - mariadb
-    stop_grace_period: 10s   
+    stop_grace_period: 10s
     environment:
       PHOTOPRISM_INIT: "http"
       PHOTOPRISM_UID: ${UID:-1000}                         # user id, should match your host user id
@@ -17,7 +17,7 @@ services:
       PHOTOPRISM_ADMIN_USER: "admin"                       # admin login username
       PHOTOPRISM_ADMIN_PASSWORD: "photoprism"              # initial admin password (8-72 characters)
       PHOTOPRISM_AUTH_MODE: "password"                     # authentication mode (public, password)
-      PHOTOPRISM_SITE_URL: "http://localhost:2342/"        # server URL in the format "http(s)://domain.name(:port)/(path)"
+      PHOTOPRISM_SITE_URL: "http://localhost:2344/"        # server URL in the format "http(s)://domain.name(:port)/(path)"
       PHOTOPRISM_SITE_CAPTION: "Latest"
       PHOTOPRISM_SITE_DESCRIPTION: "Tags and finds pictures without getting in your way!"
       PHOTOPRISM_SITE_AUTHOR: "@photoprism_app"
@@ -62,10 +62,8 @@ services:
     command: --port=4001 --innodb-strict-mode=1 --innodb-buffer-pool-size=256M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
     expose:
       - "4001"
-    ports:
-      - "4003:4001" # database port (host:container)
     volumes:
-      - "./scripts/sql/mariadb-init.sql:/docker-entrypoint-initdb.d/init.sql"
+      - "./mariadbdata:/var/lib/mysql"
     environment:
       MARIADB_AUTO_UPGRADE: "1"
       MARIADB_INITDB_SKIP_TZINFO: "1"
