@@ -6,7 +6,10 @@ services:
       - seccomp:unconfined
       - apparmor:unconfined
     ports:
-      - "2342:2342" 
+      - "2342:2342"
+    depends_on:
+      - mariadb
+    stop_grace_period: 10s   
     environment:
       PHOTOPRISM_INIT: "http"
       PHOTOPRISM_UID: ${UID:-1000}                         # user id, should match your host user id
