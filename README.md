@@ -1,6 +1,6 @@
-# photoprism
+# PhotoPrism
 
-Ver en "localhost:2344"
+Ver en "http://localhost:2344"
 
 Usuario: admin
 
