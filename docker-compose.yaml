@@ -43,7 +43,6 @@ services:
       PHOTOPRISM_DETECT_NSFW: "false"         # automatically flags photos as private that MAY be offensive (requires TensorFlow)
       PHOTOPRISM_UPLOAD_NSFW: "false"         # allows uploads that MAY be offensive (no effect without TensorFlow)
       PHOTOPRISM_RAW_PRESETS: "false"         # enables applying user presets when converting RAW images (reduces performance)
-      PHOTOPRISM_THUMB_FILTER: "lanczos"      # resample filter, best to worst: blackman, lanczos, cubic, linear
       PHOTOPRISM_THUMB_UNCACHED: "true"       # enables on-demand thumbnail rendering (high memory and cpu usage)
       PHOTOPRISM_THUMB_SIZE: 1920             # pre-rendered thumbnail size limit (default 1920, min 720, max 7680)
       PHOTOPRISM_THUMB_SIZE_UNCACHED: 7680    # on-demand rendering size limit (default 7680, min 720, max 7680)
